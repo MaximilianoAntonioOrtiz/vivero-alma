@@ -1,6 +1,6 @@
 // ===============================================
 // Archivo: js/cart.js
-// Lógica completa del Carrito (Guardar, Mostrar, Eliminar, Finalizar)
+// Lógica completa del Carrito (FINAL CON +/-)
 // ===============================================
 
 const getCart = () => {
@@ -12,25 +12,53 @@ const saveCart = (cart) => {
     localStorage.setItem('vivero_cart', JSON.stringify(cart));
 };
 
-/**
- * Verifica si hay una sesión de usuario activa.
- */
 const isLoggedIn = () => {
     return localStorage.getItem('usuarioLogueado') !== null;
 };
 
+// --- NUEVAS FUNCIONES DE CONTROL DE CANTIDAD ---
 
 /**
- * Añade un producto al carrito o incrementa su cantidad.
+ * Actualiza la cantidad de un producto específico en el carrito.
  */
+const updateQuantity = (productId, change) => {
+    let cart = getCart();
+    const item = cart.find(i => i.id === productId);
+    
+    if (item) {
+        item.quantity += change;
+
+        // Si la cantidad llega a 0 o menos, eliminamos el ítem
+        if (item.quantity <= 0) {
+            cart = cart.filter(i => i.id !== productId);
+        }
+        
+        saveCart(cart);
+        renderCartItems(); // Vuelve a dibujar el carrito con la cantidad actualizada
+    }
+};
+
+/** Llama a updateQuantity para incrementar. */
+const incrementQuantity = (productId) => {
+    updateQuantity(productId, 1);
+};
+
+/** Llama a updateQuantity para decrementar. */
+const decrementQuantity = (productId) => {
+    updateQuantity(productId, -1);
+};
+
+
+// ------------------------------------------------------------------
+// Lógica Existente (addToCart, removeItem, finishPurchase)
+// ------------------------------------------------------------------
+
 const addToCart = (productId) => {
-    // --- CONTROL DE SESIÓN ---
     if (!isLoggedIn()) {
         alert("Debes iniciar sesión para agregar productos al carrito.");
-        window.location.href = 'login.html'; // Redirigir al login
+        window.location.href = 'login.html';
         return;
     }
-    // -------------------------
 
     if (typeof products === 'undefined') {
         alert("Error: El catálogo de productos no está disponible. Revisa la carga de products.js.");
@@ -66,24 +94,17 @@ const removeItemFromCart = (productId) => {
     let cart = getCart();
     cart = cart.filter(item => item.id !== productId);
     saveCart(cart);
-    renderCartItems(); // Vuelve a dibujar el carrito después de eliminar
+    renderCartItems();
 };
 
-/**
- * Función que simula la finalización de la compra.
- */
 const finishPurchase = () => {
-    // --- CONTROL DE SESIÓN FINAL ---
     if (!isLoggedIn()) {
         alert("Debes iniciar sesión para finalizar la compra.");
-        window.location.href = 'login.html'; // Redirigir al login
+        window.location.href = 'login.html';
         return;
     }
-    // -------------------------------
     
-    const cart = getCart();
-
-    if (cart.length === 0) {
+    if (getCart().length === 0) {
         alert("El carrito está vacío. Agrega productos antes de finalizar la compra.");
         return;
     }
@@ -94,28 +115,23 @@ const finishPurchase = () => {
 };
 
 
+// ------------------------------------------------------------------
+// Lógica de Renderizado (Actualizada con botones +/-)
+// ------------------------------------------------------------------
+
 const renderCartItems = () => {
     const cartContainer = document.getElementById('cart-container');
     if (!cartContainer) return;
 
     const cart = getCart();
 
-    // Si el usuario no está logueado, no muestra el carrito aunque tenga ítems
+    // Mensaje de seguridad o carrito vacío
     if (!isLoggedIn() && cart.length > 0) {
-        cartContainer.innerHTML = `
-            <div class="alert alert-warning text-center">
-                Por seguridad, debes <a href="login.html">iniciar sesión</a> para ver y gestionar tu carrito.
-            </div>
-        `;
+        cartContainer.innerHTML = `<div class="alert alert-warning text-center">Por seguridad, debes <a href="login.html">iniciar sesión</a> para ver y gestionar tu carrito.</div>`;
         return;
     }
-    
     if (cart.length === 0) {
-        cartContainer.innerHTML = `
-            <div class="alert alert-info text-center">
-                Tu carrito está vacío. ¡Explora nuestras <a href="productos.html">plantas</a>!
-            </div>
-        `;
+        cartContainer.innerHTML = `<div class="alert alert-info text-center">Tu carrito está vacío. ¡Explora nuestras <a href="productos.html">plantas</a>!</div>`;
         return;
     }
 
@@ -136,19 +152,23 @@ const renderCartItems = () => {
                     </div>
                 </div>
                 
+                <div class="d-flex align-items-center me-3">
+                    <button class="btn btn-sm btn-outline-secondary me-1" onclick="decrementQuantity(${item.id})">-</button>
+                    <span class="me-1">${item.quantity}</span> 
+                    <button class="btn btn-sm btn-outline-secondary" onclick="incrementQuantity(${item.id})">+</button>
+                </div>
+
                 <div class="d-flex align-items-center">
-                    <span class="me-3">Cant: ${item.quantity}</span> 
-                    
-                    <button class="btn btn-sm btn-danger remove-item" data-product-id="${item.id}">
+                    <span class="fw-bold ms-3">$${subtotal.toFixed(2)}</span>
+                    <button class="btn btn-sm btn-danger ms-3" onclick="removeItemFromCart(${item.id})">
                         Eliminar
                     </button>
                 </div>
-                <span class="fw-bold ms-3">$${subtotal.toFixed(2)}</span>
             </li>
         `;
     });
 
-    // Estructura final con totales
+    // Estructura final con totales (se mantiene igual)
     cartContainer.innerHTML = `
         <div class="row">
             <div class="col-lg-8">
@@ -174,23 +194,12 @@ const renderCartItems = () => {
         </div>
     `;
     
-    setupRemoveListeners();
+    // Aquí no necesitamos setupRemoveListeners porque usamos onclick en el HTML.
 };
 
-
-const setupRemoveListeners = () => {
-    const removeButtons = document.querySelectorAll('.remove-item');
-    removeButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            const productId = parseInt(e.target.dataset.productId);
-            if (!isNaN(productId)) {
-                removeItemFromCart(productId);
-            }
-        });
-    });
-};
-
+// ... (Resto de funciones: setupAddToCartListeners y DOMContentLoaded)
 const setupAddToCartListeners = () => {
+    // ... (Mantener la función setupAddToCartListeners como está)
     const cartButtons = document.querySelectorAll('.add-to-cart');
     
     console.log(`[Carrito] Botones de añadir encontrados: ${cartButtons.length}`); 
