@@ -88,11 +88,11 @@ const renderCartItems = () => {
 
         itemsHTML += `
             <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <img src="./img/${item.image}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; margin-right: 15px;">
+                <div class="d-flex align-items-center flex-grow-1"> <img src="./img/${item.image}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; margin-right: 15px;">
                     <div>
                         <h6 class="mb-0">${item.name}</h6>
-                        <small class="text-muted">$${item.price.toFixed(2)} c/u</small>
+                        ${products.find(p => p.id === item.id) ? `<small class="text-muted">${products.find(p => p.id === item.id).description.substring(0, 30)}...</small>` : ''}
+                        <small class="text-muted d-block">$${item.price.toFixed(2)} c/u</small>
                     </div>
                 </div>
                 
@@ -103,7 +103,7 @@ const renderCartItems = () => {
                         Eliminar
                     </button>
                 </div>
-                <span class="fw-bold">$${subtotal.toFixed(2)}</span>
+                <span class="fw-bold ms-3">$${subtotal.toFixed(2)}</span>
             </li>
         `;
     });
