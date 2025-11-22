@@ -1,18 +1,14 @@
 // ===============================================
-// Archivo: js/products.js
-// Catálogo de Productos y Lógica de Carga (20 Ítems)
+// Archivo: js/products.js (Con Lógica de Multi-Filtro)
 // ===============================================
 
-// La variable 'products' es 'var' para ser accesible globalmente por cart.js
+// Catálogo de 20 productos
 var products = [
-    // --- PRODUCTOS INICIALES ---
     { id: 1, name: "Monstera Deliciosa", category: "Plantas de Interior", price: 25.50, description: "Una planta tropical muy popular, conocida por sus grandes hojas perforadas.", image: "monstera.jpg" },
     { id: 2, name: "Cactus San Pedro", category: "Cactus y Suculentas", price: 15.00, description: "Fácil de cuidar, requiere poca agua y mucha luz solar.", image: "cactus.jpg" },
     { id: 3, name: "Set de 3 Macetas de Cerámica", category: "Macetas", price: 35.99, description: "Macetas de cerámica esmaltada, perfectas para plantas de tamaño medio.", image: "macetas.jpg" },
     { id: 4, name: "Tierra de Diatomeas Orgánica", category: "Herramientas", price: 9.99, description: "Fertilizante y pesticida natural. 100% orgánico y seguro para mascotas.", image: "diatomeas.jpg" },
     { id: 5, name: "Ficus Lyrata (Fiddle Leaf Fig)", category: "Plantas de Interior", price: 45.00, description: "Planta de interior elegante con grandes hojas en forma de violín.", image: "ficus.jpg" },
-    
-    // --- 15 PRODUCTOS ADICIONALES ---
     { id: 6, name: "Suculenta Echeveria", category: "Cactus y Suculentas", price: 8.50, description: "Variedad popular de suculenta de bajo mantenimiento.", image: "echeveria.jpg" },
     { id: 7, name: "Palmera de Salón", category: "Plantas de Interior", price: 32.90, description: "Ideal para esquinas oscuras. Purifica el aire.", image: "palmera.jpg" },
     { id: 8, name: "Rosas Miniatura", category: "Plantas de Exterior", price: 19.99, description: "Variedad de rosal compacto ideal para balcones.", image: "rosas.jpg" },
@@ -38,17 +34,43 @@ const initCartListeners = () => {
 };
 
 /**
+ * Filtra los productos basándose en una lista de categorías seleccionadas.
+ */
+const filterProducts = () => {
+    // 1. Recolectar todas las categorías seleccionadas
+    const checkboxes = document.querySelectorAll('#category-filters-container .category-checkbox');
+    const selectedCategories = [];
+
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            selectedCategories.push(checkbox.value);
+        }
+    });
+
+    // 2. Determinar si se debe mostrar todo
+    const showAll = document.getElementById('filter-all').checked || selectedCategories.length === 0;
+
+    let filteredProducts = products;
+
+    if (!showAll) {
+        // Filtrar productos cuya categoría esté en el array selectedCategories
+        filteredProducts = products.filter(product => selectedCategories.includes(product.category));
+    }
+    
+    renderProducts(filteredProducts);
+};
+
+/**
  * Función para generar las cards de productos y mostrarlas en productos.html
  */
-const renderProducts = () => {
+const renderProducts = (productArray = products) => {
     const productListContainer = document.getElementById('product-list');
     if (!productListContainer) return;
     let htmlContent = '';
 
-    products.forEach(product => {
+    productArray.forEach(product => {
         htmlContent += `
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="card h-100 shadow-sm border-0">
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3"> <div class="card h-100 shadow-sm border-0">
                     <img src="./img/${product.image}" class="card-img-top" alt="${product.name}" style="height: 200px; object-fit: cover;">
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title text-success">${product.name}</h5>
@@ -63,12 +85,79 @@ const renderProducts = () => {
             </div>
         `;
     });
-    productListContainer.innerHTML = htmlContent;
+    
+    if (productArray.length === 0) {
+        productListContainer.innerHTML = '<div class="alert alert-warning">No se encontraron productos que coincidan con la selección.</div>';
+    } else {
+        productListContainer.innerHTML = htmlContent;
+    }
+    initCartListeners(); // Re-conectar listeners después de dibujar
 };
 
 /**
- * Función que busca el ID del producto en la URL y renderiza el detalle.
+ * Dibuja la lista de filtros de categorías con checkboxes.
  */
+const renderFilterSidebar = () => {
+    const filterContainer = document.getElementById('category-filters-container');
+    if (!filterContainer) return;
+
+    // 1. Obtener categorías únicas y ordenarlas
+    const categories = [...new Set(products.map(product => product.category))].sort();
+
+    // 2. Generar el HTML de los checkboxes
+    let filtersHTML = '';
+    categories.forEach(category => {
+        // Sanitizar el nombre para usarlo en el ID del input
+        const cleanId = category.replace(/\s/g, '-'); 
+        filtersHTML += `
+            <div class="form-check mb-2">
+                <input class="form-check-input category-checkbox" type="checkbox" id="filter-${cleanId}" value="${category}">
+                <label class="form-check-label" for="filter-${cleanId}">
+                    ${category}
+                </label>
+            </div>
+        `;
+    });
+    
+    filterContainer.innerHTML = filtersHTML;
+
+    // 3. Conectar Event Listeners a los Filtros
+    // Conectar el checkbox 'Todos'
+    document.getElementById('filter-all').addEventListener('change', (e) => {
+        // Si se marca 'Todos', desmarcar los demás; si se desmarca, dejar como está
+        if (e.target.checked) {
+            document.querySelectorAll('#category-filters-container .category-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+        }
+        filterProducts();
+    });
+
+    // Conectar los checkboxes de categorías individuales
+    document.querySelectorAll('#category-filters-container .category-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            // Si se marca/desmarca cualquier categoría, desmarcar 'Todos'
+            document.getElementById('filter-all').checked = false;
+            filterProducts();
+        });
+    });
+
+    // Conectar el botón 'Limpiar Selecciones' para resetear el formulario y aplicar el filtro
+    document.querySelector('#filter-form button[type="reset"]').addEventListener('click', (e) => {
+        // Usar setTimeout para que el reset del form tenga tiempo de ejecutarse
+        setTimeout(() => {
+            document.getElementById('filter-all').checked = true;
+            filterProducts();
+        }, 50);
+    });
+    
+    // Aplicar el filtro inicial (muestra todo, ya que 'filter-all' está checked por defecto)
+    filterProducts(); 
+};
+
+
+// ... (renderProductDetail se mantiene igual)
+
 const renderProductDetail = () => {
     const detailContainer = document.getElementById('product-detail');
     if (!detailContainer) return;
@@ -104,11 +193,10 @@ const renderProductDetail = () => {
 };
 
 
-// Bloque de ejecución principal (llamar funciones de renderizado y conexión)
+// Bloque de ejecución principal
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('product-list')) {
-        renderProducts();
-        initCartListeners();
+        renderFilterSidebar(); 
     }
     if (document.getElementById('product-detail')) {
         renderProductDetail();
