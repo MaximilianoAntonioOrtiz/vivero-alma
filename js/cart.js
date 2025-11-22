@@ -12,7 +12,26 @@ const saveCart = (cart) => {
     localStorage.setItem('vivero_cart', JSON.stringify(cart));
 };
 
+/**
+ * Verifica si hay una sesión de usuario activa.
+ */
+const isLoggedIn = () => {
+    return localStorage.getItem('usuarioLogueado') !== null;
+};
+
+
+/**
+ * Añade un producto al carrito o incrementa su cantidad.
+ */
 const addToCart = (productId) => {
+    // --- CONTROL DE SESIÓN ---
+    if (!isLoggedIn()) {
+        alert("Debes iniciar sesión para agregar productos al carrito.");
+        window.location.href = 'login.html'; // Redirigir al login
+        return;
+    }
+    // -------------------------
+
     if (typeof products === 'undefined') {
         alert("Error: El catálogo de productos no está disponible. Revisa la carga de products.js.");
         return;
@@ -50,7 +69,18 @@ const removeItemFromCart = (productId) => {
     renderCartItems(); // Vuelve a dibujar el carrito después de eliminar
 };
 
+/**
+ * Función que simula la finalización de la compra.
+ */
 const finishPurchase = () => {
+    // --- CONTROL DE SESIÓN FINAL ---
+    if (!isLoggedIn()) {
+        alert("Debes iniciar sesión para finalizar la compra.");
+        window.location.href = 'login.html'; // Redirigir al login
+        return;
+    }
+    // -------------------------------
+    
     const cart = getCart();
 
     if (cart.length === 0) {
@@ -70,6 +100,16 @@ const renderCartItems = () => {
 
     const cart = getCart();
 
+    // Si el usuario no está logueado, no muestra el carrito aunque tenga ítems
+    if (!isLoggedIn() && cart.length > 0) {
+        cartContainer.innerHTML = `
+            <div class="alert alert-warning text-center">
+                Por seguridad, debes <a href="login.html">iniciar sesión</a> para ver y gestionar tu carrito.
+            </div>
+        `;
+        return;
+    }
+    
     if (cart.length === 0) {
         cartContainer.innerHTML = `
             <div class="alert alert-info text-center">
@@ -83,15 +123,15 @@ const renderCartItems = () => {
     let total = 0;
 
     cart.forEach(item => {
-        const subtotal = item.price * item.quantity; // CÁLCULO CORRECTO
+        const subtotal = item.price * item.quantity;
         total += subtotal;
 
         itemsHTML += `
             <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center flex-grow-1"> <img src="./img/${item.image}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; margin-right: 15px;">
+                <div class="d-flex align-items-center flex-grow-1">
+                    <img src="./img/${item.image}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; margin-right: 15px;">
                     <div>
                         <h6 class="mb-0">${item.name}</h6>
-                        ${products.find(p => p.id === item.id) ? `<small class="text-muted">${products.find(p => p.id === item.id).description.substring(0, 30)}...</small>` : ''}
                         <small class="text-muted d-block">$${item.price.toFixed(2)} c/u</small>
                     </div>
                 </div>
