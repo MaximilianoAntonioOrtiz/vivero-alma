@@ -1,5 +1,5 @@
 // ===============================================
-// Archivo: js/products.js (FINAL CON BÚSQUEDA)
+// Archivo: js/products.js (FINAL CON BÚSQUEDA Y ORDENAMIENTO)
 // ===============================================
 
 // Catálogo de 20 productos (Mantener var para compatibilidad con cart.js)
@@ -34,13 +34,14 @@ const initCartListeners = () => {
 };
 
 /**
- * Lógica principal de filtrado que combina la barra de búsqueda y los checkboxes.
+ * Lógica principal de filtrado y ordenamiento que combina la búsqueda, los checkboxes y la ordenación.
  */
-const combineFilters = () => {
-    // 1. Obtener valor de búsqueda
+const combineFiltersAndSort = () => {
+    // 1. OBTENER VALORES
     const searchTerm = document.getElementById('search-input')?.value.toLowerCase() || '';
-
-    // 2. Obtener categorías seleccionadas
+    const sortValue = document.getElementById('sort-select')?.value || 'default';
+    
+    // 2. OBTENER CATEGORÍAS SELECCIONADAS (Lógica de filtrado)
     const checkboxes = document.querySelectorAll('#category-filters-container .category-checkbox');
     const selectedCategories = [];
     checkboxes.forEach(checkbox => {
@@ -51,7 +52,7 @@ const combineFilters = () => {
 
     const showAllCategories = document.getElementById('filter-all')?.checked || (selectedCategories.length === 0 && !searchTerm);
 
-    // 3. Aplicar Filtro
+    // 3. APLICAR FILTRO
     let filteredProducts = products.filter(product => {
         const matchesSearch = product.name.toLowerCase().includes(searchTerm) || 
                               product.category.toLowerCase().includes(searchTerm) || 
@@ -62,6 +63,22 @@ const combineFilters = () => {
         return matchesSearch && matchesCategory;
     });
     
+    // 4. APLICAR ORDENAMIENTO (SORT)
+    if (sortValue !== 'default') {
+        filteredProducts.sort((a, b) => {
+            if (sortValue === 'price-asc') {
+                return a.price - b.price; // Menor a Mayor
+            } else if (sortValue === 'price-desc') {
+                return b.price - a.price; // Mayor a Menor
+            } else if (sortValue === 'name-asc') {
+                return a.name.localeCompare(b.name); // A-Z
+            } else if (sortValue === 'name-desc') {
+                return b.name.localeCompare(a.name); // Z-A
+            }
+            return 0; // Si no hay match, no cambia el orden
+        });
+    }
+
     renderProducts(filteredProducts);
 };
 
@@ -70,8 +87,15 @@ const combineFilters = () => {
  * Función que maneja el evento 'keyup' o 'change' de la búsqueda.
  */
 const handleSearch = () => {
-    // Llama al filtro combinado al escribir
-    combineFilters();
+    combineFiltersAndSort();
+};
+
+
+/**
+ * Función que maneja el evento 'change' del select de ordenamiento.
+ */
+const handleSort = () => {
+    combineFiltersAndSort();
 };
 
 
@@ -79,8 +103,7 @@ const handleSearch = () => {
  * Función que maneja el evento 'change' de los checkboxes.
  */
 const handleCategoryFilter = () => {
-    // Si se selecciona o deselecciona un checkbox, llama al filtro combinado
-    combineFilters();
+    combineFiltersAndSort();
 };
 
 
@@ -169,8 +192,11 @@ const renderFilterSidebar = () => {
     // Conectar el input de búsqueda
     document.getElementById('search-input')?.addEventListener('keyup', handleSearch);
 
+    // Conectar el select de ordenamiento (NUEVO)
+    document.getElementById('sort-select')?.addEventListener('change', handleSort);
+
     // Aplicar el filtro inicial (muestra todo por defecto)
-    handleCategoryFilter(); 
+    combineFiltersAndSort(); 
 };
 
 
