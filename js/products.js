@@ -1,8 +1,8 @@
 // ===============================================
-// Archivo: js/products.js (Con Lógica de Multi-Filtro)
+// Archivo: js/products.js (FINAL CON BÚSQUEDA)
 // ===============================================
 
-// Catálogo de 20 productos
+// Catálogo de 20 productos (Mantener var para compatibilidad con cart.js)
 var products = [
     { id: 1, name: "Monstera Deliciosa", category: "Plantas de Interior", price: 25.50, description: "Una planta tropical muy popular, conocida por sus grandes hojas perforadas.", image: "monstera.jpg" },
     { id: 2, name: "Cactus San Pedro", category: "Cactus y Suculentas", price: 15.00, description: "Fácil de cuidar, requiere poca agua y mucha luz solar.", image: "cactus.jpg" },
@@ -34,31 +34,55 @@ const initCartListeners = () => {
 };
 
 /**
- * Filtra los productos basándose en una lista de categorías seleccionadas.
+ * Lógica principal de filtrado que combina la barra de búsqueda y los checkboxes.
  */
-const filterProducts = () => {
-    // 1. Recolectar todas las categorías seleccionadas
+const combineFilters = () => {
+    // 1. Obtener valor de búsqueda
+    const searchTerm = document.getElementById('search-input')?.value.toLowerCase() || '';
+
+    // 2. Obtener categorías seleccionadas
     const checkboxes = document.querySelectorAll('#category-filters-container .category-checkbox');
     const selectedCategories = [];
-
     checkboxes.forEach(checkbox => {
         if (checkbox.checked) {
             selectedCategories.push(checkbox.value);
         }
     });
 
-    // 2. Determinar si se debe mostrar todo
-    const showAll = document.getElementById('filter-all').checked || selectedCategories.length === 0;
+    const showAllCategories = document.getElementById('filter-all')?.checked || (selectedCategories.length === 0 && !searchTerm);
 
-    let filteredProducts = products;
+    // 3. Aplicar Filtro
+    let filteredProducts = products.filter(product => {
+        const matchesSearch = product.name.toLowerCase().includes(searchTerm) || 
+                              product.category.toLowerCase().includes(searchTerm) || 
+                              product.description.toLowerCase().includes(searchTerm);
+        
+        const matchesCategory = showAllCategories || selectedCategories.includes(product.category);
 
-    if (!showAll) {
-        // Filtrar productos cuya categoría esté en el array selectedCategories
-        filteredProducts = products.filter(product => selectedCategories.includes(product.category));
-    }
+        return matchesSearch && matchesCategory;
+    });
     
     renderProducts(filteredProducts);
 };
+
+
+/**
+ * Función que maneja el evento 'keyup' o 'change' de la búsqueda.
+ */
+const handleSearch = () => {
+    // Llama al filtro combinado al escribir
+    combineFilters();
+};
+
+
+/**
+ * Función que maneja el evento 'change' de los checkboxes.
+ */
+const handleCategoryFilter = () => {
+    // Si se selecciona o deselecciona un checkbox, llama al filtro combinado
+    combineFilters();
+};
+
 
 /**
  * Función para generar las cards de productos y mostrarlas en productos.html
@@ -95,20 +119,17 @@ const renderProducts = (productArray = products) => {
 };
 
 /**
- * Dibuja la lista de filtros de categorías con checkboxes.
+ * Dibuja la lista de filtros de categorías con checkboxes y conecta eventos.
  */
 const renderFilterSidebar = () => {
     const filterContainer = document.getElementById('category-filters-container');
     if (!filterContainer) return;
 
-    // 1. Obtener categorías únicas y ordenarlas
     const categories = [...new Set(products.map(product => product.category))].sort();
-
-    // 2. Generar el HTML de los checkboxes
     let filtersHTML = '';
+    
     categories.forEach(category => {
-        // Sanitizar el nombre para usarlo en el ID del input
-        const cleanId = category.replace(/\s/g, '-'); 
+        const cleanId = category.replace(/\s/g, '-').replace(/&/g, ''); 
         filtersHTML += `
             <div class="form-check mb-2">
                 <input class="form-check-input category-checkbox" type="checkbox" id="filter-${cleanId}" value="${category}">
@@ -121,43 +142,39 @@ const renderFilterSidebar = () => {
     
     filterContainer.innerHTML = filtersHTML;
 
-    // 3. Conectar Event Listeners a los Filtros
-    // Conectar el checkbox 'Todos'
-    document.getElementById('filter-all').addEventListener('change', (e) => {
-        // Si se marca 'Todos', desmarcar los demás; si se desmarca, dejar como está
+    // Conectar Event Listeners a los Checkboxes
+    document.querySelectorAll('#filter-form .category-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', handleCategoryFilter);
+    });
+
+    // Conectar el botón 'Todos'
+    document.getElementById('filter-all')?.addEventListener('change', (e) => {
         if (e.target.checked) {
             document.querySelectorAll('#category-filters-container .category-checkbox').forEach(cb => {
                 cb.checked = false;
             });
         }
-        filterProducts();
+        handleCategoryFilter();
     });
 
-    // Conectar los checkboxes de categorías individuales
-    document.querySelectorAll('#category-filters-container .category-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', () => {
-            // Si se marca/desmarca cualquier categoría, desmarcar 'Todos'
-            document.getElementById('filter-all').checked = false;
-            filterProducts();
-        });
-    });
-
-    // Conectar el botón 'Limpiar Selecciones' para resetear el formulario y aplicar el filtro
-    document.querySelector('#filter-form button[type="reset"]').addEventListener('click', (e) => {
+    // Conectar el botón 'Limpiar Selecciones'
+    document.querySelector('#filter-form button[type="reset"]')?.addEventListener('click', () => {
         // Usar setTimeout para que el reset del form tenga tiempo de ejecutarse
         setTimeout(() => {
             document.getElementById('filter-all').checked = true;
-            filterProducts();
+            handleCategoryFilter();
         }, 50);
     });
-    
-    // Aplicar el filtro inicial (muestra todo, ya que 'filter-all' está checked por defecto)
-    filterProducts(); 
+
+    // Conectar el input de búsqueda
+    document.getElementById('search-input')?.addEventListener('keyup', handleSearch);
+
+    // Aplicar el filtro inicial (muestra todo por defecto)
+    handleCategoryFilter(); 
 };
 
 
-// ... (renderProductDetail se mantiene igual)
-
+// ... (renderProductDetail se mantiene igual, código omitido por espacio)
 const renderProductDetail = () => {
     const detailContainer = document.getElementById('product-detail');
     if (!detailContainer) return;
