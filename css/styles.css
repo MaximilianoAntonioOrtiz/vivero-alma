@@ -1,0 +1,92 @@
+/* ===============================================
+   Archivo: css/styles.css
+   Estilos finales y pulido (Minimalista y Claro)
+   =============================================== */
+
+/* 1. RESET Y BASE */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa; /* Color de fondo claro */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Asegura que el footer se quede abajo */
+}
+
+main {
+    flex-grow: 1; /* Esto empuja el footer hacia abajo */
+}
+
+/* 2. ESTILOS DE COMPONENTES */
+
+/* Navbar (verde principal) */
+.bg-success {
+    background-color: #38761d !important; /* Verde oscuro primario */
+}
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Botones de acción (Heredar el color verde principal) */
+.btn-success {
+    background-color: #38761d;
+    border-color: #38761d;
+}
+.btn-success:hover {
+    background-color: #5d9237;
+    border-color: #5d9237;
+}
+
+/* Botones secundarios (Login/Registro) */
+.btn-primary {
+    /* Verde claro para el Registro/Login */
+    background-color: #6aa84f;
+    border-color: #6aa84f;
+}
+.btn-primary:hover {
+    background-color: #79ac62;
+    border-color: #79ac62;
+}
+
+/* Botón Outline */
+.btn-outline-light {
+    color: #fff;
+    border-color: #fff;
+}
+.btn-outline-light:hover {
+    color: #38761d;
+    background-color: #fff;
+}
+
+
+/* 3. ESTILOS DE PRODUCTOS */
+
+/* Ajuste para las Cards (sombra y esquinas suaves) */
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra sutil al pasar el mouse */
+}
+.card-img-top {
+    border-bottom: 1px solid #eee;
+}
+
+/* Títulos en Detalle */
+.display-4, .display-5 {
+    color: #38761d; /* Verde para títulos importantes */
+}
+
+/* 4. ESTILOS DE CARRO */
+.list-group-item img {
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+/* 5. FOOTER */
+footer {
+    border-top: 1px solid #e9ecef; /* Línea sutil sobre el footer */
+}

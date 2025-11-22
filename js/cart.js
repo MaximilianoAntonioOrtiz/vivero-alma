@@ -1,26 +1,17 @@
 // ===============================================
 // Archivo: js/cart.js
-// Lógica completa del Carrito (Guardar, Mostrar, Eliminar)
+// Lógica completa del Carrito (Guardar, Mostrar, Eliminar, Finalizar)
 // ===============================================
 
-/**
- * Obtiene el carrito desde localStorage. Si no existe, devuelve un array vacío.
- */
 const getCart = () => {
     const cartJSON = localStorage.getItem('vivero_cart');
     return cartJSON ? JSON.parse(cartJSON) : [];
 };
 
-/**
- * Guarda el carrito actualizado en localStorage.
- */
 const saveCart = (cart) => {
     localStorage.setItem('vivero_cart', JSON.stringify(cart));
 };
 
-/**
- * Añade un producto al carrito o incrementa su cantidad.
- */
 const addToCart = (productId) => {
     if (typeof products === 'undefined') {
         alert("Error: El catálogo de productos no está disponible. Revisa la carga de products.js.");
@@ -52,20 +43,35 @@ const addToCart = (productId) => {
     alert(`¡"${product.name}" añadido al carrito! Cantidad actual: ${quantityAdded}`);
 };
 
-/**
- * Elimina un ítem del carrito por su ID.
- */
 const removeItemFromCart = (productId) => {
     let cart = getCart();
-    // Filtra el array, manteniendo solo los productos que NO coincidan con el ID
     cart = cart.filter(item => item.id !== productId);
     saveCart(cart);
     renderCartItems(); // Vuelve a dibujar el carrito después de eliminar
 };
 
 /**
- * Dibuja la vista del carrito en carrito.html
+ * Función que simula la finalización de la compra. (NUEVA FUNCIONALIDAD)
  */
+const finishPurchase = () => {
+    const cart = getCart();
+
+    if (cart.length === 0) {
+        alert("El carrito está vacío. Agrega productos antes de finalizar la compra.");
+        return;
+    }
+
+    // 1. Simular éxito
+    alert("¡Compra realizada con éxito! Recibirás la confirmación por correo.");
+
+    // 2. Limpiar el carrito de localStorage
+    localStorage.removeItem('vivero_cart');
+
+    // 3. Redirigir al Home
+    window.location.href = 'index.html';
+};
+
+
 const renderCartItems = () => {
     const cartContainer = document.getElementById('cart-container');
     if (!cartContainer) return;
@@ -110,7 +116,7 @@ const renderCartItems = () => {
         `;
     });
 
-    // Estructura final con totales
+    // Conectar el botón de Finalizar Compra con la función onclick
     cartContainer.innerHTML = `
         <div class="row">
             <div class="col-lg-8">
@@ -129,37 +135,29 @@ const renderCartItems = () => {
                             <h4>Total:</h4>
                             <h4>$${total.toFixed(2)}</h4>
                         </div>
-                        <button class="btn btn-success w-100 btn-lg">Finalizar Compra</button>
+                        <button class="btn btn-success w-100 btn-lg" onclick="finishPurchase()">Finalizar Compra</button>
                     </div>
                 </div>
             </div>
         </div>
     `;
     
-    // Conectar listeners de eliminar después de dibujar
     setupRemoveListeners();
 };
 
 
-/**
- * Conecta los botones de 'Eliminar' al DOM.
- */
 const setupRemoveListeners = () => {
     const removeButtons = document.querySelectorAll('.remove-item');
     removeButtons.forEach(button => {
         button.addEventListener('click', (e) => {
             const productId = parseInt(e.target.dataset.productId);
             if (!isNaN(productId)) {
-                // Llama a la función principal de eliminación
                 removeItemFromCart(productId);
             }
         });
     });
 };
 
-/**
- * Función que es llamada por products.js para conectar el botón 'Añadir al Carrito'.
- */
 const setupAddToCartListeners = () => {
     const cartButtons = document.querySelectorAll('.add-to-cart');
     
@@ -176,11 +174,6 @@ const setupAddToCartListeners = () => {
 };
 
 
-// -----------------------------------------------------
-// Ejecución en la página del Carrito
-// -----------------------------------------------------
-
-// Ejecución principal solo si estamos en carrito.html
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('cart-container')) {
         renderCartItems();
