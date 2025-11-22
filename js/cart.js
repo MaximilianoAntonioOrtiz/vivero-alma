@@ -50,9 +50,6 @@ const removeItemFromCart = (productId) => {
     renderCartItems(); // Vuelve a dibujar el carrito después de eliminar
 };
 
-/**
- * Función que simula la finalización de la compra. (NUEVA FUNCIONALIDAD)
- */
 const finishPurchase = () => {
     const cart = getCart();
 
@@ -61,13 +58,8 @@ const finishPurchase = () => {
         return;
     }
 
-    // 1. Simular éxito
     alert("¡Compra realizada con éxito! Recibirás la confirmación por correo.");
-
-    // 2. Limpiar el carrito de localStorage
     localStorage.removeItem('vivero_cart');
-
-    // 3. Redirigir al Home
     window.location.href = 'index.html';
 };
 
@@ -91,7 +83,7 @@ const renderCartItems = () => {
     let total = 0;
 
     cart.forEach(item => {
-        const subtotal = item.price * item.quantity;
+        const subtotal = item.price * item.quantity; // CÁLCULO CORRECTO
         total += subtotal;
 
         itemsHTML += `
@@ -116,7 +108,7 @@ const renderCartItems = () => {
         `;
     });
 
-    // Conectar el botón de Finalizar Compra con la función onclick
+    // Estructura final con totales
     cartContainer.innerHTML = `
         <div class="row">
             <div class="col-lg-8">
