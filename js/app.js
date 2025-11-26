@@ -1,5 +1,6 @@
 // ===============================================
 // Archivo: js/app.js (Control del Modal y Lógica General)
+// FINAL CON TÍTULOS EN ESPAÑOL
 // ===============================================
 
 /**
@@ -9,16 +10,28 @@
  */
 const showModal = (message, type = 'success') => {
     const modalElement = document.getElementById('globalModal');
-    if (!modalElement) return;
+    if (!modalElement || typeof bootstrap === 'undefined') {
+        // Fallback si Bootstrap no carga
+        alert(message); 
+        return;
+    }
 
-    // Inicializar el objeto Modal de Bootstrap (si no existe)
+    // --- Mapeo de Títulos a Español (NUEVA LÓGICA) ---
+    const titles = {
+        'success': 'Éxito',
+        'error': 'Error',
+        'warning': 'Advertencia'
+    };
+    const titleText = titles[type] || 'Notificación';
+    
+    // Inicializar el objeto Modal de Bootstrap
     const bootstrapModal = new bootstrap.Modal(modalElement);
     
     const titleElement = document.getElementById('globalModalLabel');
     const bodyElement = modalElement.querySelector('.modal-body');
     const headerElement = modalElement.querySelector('.modal-header');
     
-    // --- Configurar Título e Icono ---
+    // --- Configurar Título, Icono y Color ---
     let iconClass = 'fa-check-circle'; // Default Success
     let headerClass = 'bg-success';
 
@@ -31,7 +44,8 @@ const showModal = (message, type = 'success') => {
     }
 
     headerElement.className = `modal-header text-white ${headerClass}`;
-    titleElement.innerHTML = `<i class="fas ${iconClass} me-2"></i> ${type.charAt(0).toUpperCase() + type.slice(1)}`; // Título capitalizado
+    // Usamos el texto mapeado en español: titleText
+    titleElement.innerHTML = `<i class="fas ${iconClass} me-2"></i> ${titleText}`; 
 
     // --- Configurar Cuerpo y Mostrar ---
     bodyElement.innerHTML = `<p>${message}</p>`;
