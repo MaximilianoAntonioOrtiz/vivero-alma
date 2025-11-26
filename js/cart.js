@@ -1,6 +1,5 @@
 // ===============================================
-// Archivo: js/cart.js
-// Lógica completa del Carrito (FINAL con Descuento)
+// Archivo: js/cart.js (FINAL con Modales)
 // ===============================================
 
 const DISCOUNT_CODE = "BIENVENIDA15";
@@ -19,7 +18,7 @@ const isLoggedIn = () => {
     return localStorage.getItem('usuarioLogueado') !== null;
 };
 
-// --- FUNCIONES DE CONTROL DE CANTIDAD ---
+// --- Funciones de Control de Cantidad y Carrito ---
 
 const updateQuantity = (productId, change) => {
     let cart = getCart();
@@ -27,13 +26,11 @@ const updateQuantity = (productId, change) => {
     
     if (item) {
         item.quantity += change;
-
         if (item.quantity <= 0) {
             cart = cart.filter(i => i.id !== productId);
         }
-        
         saveCart(cart);
-        renderCartItems(); // Vuelve a dibujar el carrito
+        renderCartItems(); 
     }
 };
 
@@ -45,22 +42,16 @@ const decrementQuantity = (productId) => {
     updateQuantity(productId, -1);
 };
 
-// ----------------------------------------
 
-/**
- * Añade un producto al carrito (Función llamada desde productos.html).
- */
 const addToCart = (productId) => {
-    // --- CONTROL DE SEGURIDAD ---
     if (!isLoggedIn()) {
-        alert("Debes iniciar sesión para agregar productos al carrito.");
-        window.location.href = 'login.html';
+        showModal("Debes iniciar sesión para agregar productos al carrito.", 'warning');
+        setTimeout(() => { window.location.href = 'login.html'; }, 1500); 
         return;
     }
-    // ----------------------------
 
     if (typeof products === 'undefined') {
-        alert("Error: El catálogo de productos no está disponible. Revisa la carga de products.js.");
+        showModal("Error: El catálogo de productos no está disponible.", 'error');
         return;
     }
 
@@ -86,7 +77,7 @@ const addToCart = (productId) => {
     }
 
     saveCart(cart);
-    alert(`¡"${product.name}" añadido al carrito! Cantidad actual: ${quantityAdded}`);
+    showModal(`¡"${product.name}" añadido al carrito! Cantidad actual: ${quantityAdded}`, 'success');
 };
 
 const removeItemFromCart = (productId) => {
@@ -96,9 +87,6 @@ const removeItemFromCart = (productId) => {
     renderCartItems(); 
 };
 
-/**
- * Aplica el código de descuento ingresado por el usuario.
- */
 const applyDiscount = () => {
     const input = document.getElementById('coupon-input');
     const code = input?.value.toUpperCase();
@@ -107,38 +95,37 @@ const applyDiscount = () => {
     if (code === DISCOUNT_CODE) {
         localStorage.setItem('discount_applied', 'true');
         messageContainer.innerHTML = `<div class="text-success small fw-bold">¡Descuento del 15% aplicado!</div>`;
+        showModal('Descuento aplicado correctamente.', 'success');
     } else {
         localStorage.removeItem('discount_applied');
         messageContainer.innerHTML = `<div class="text-danger small fw-bold">Código no válido.</div>`;
+        showModal('Error: El código de cupón no es válido.', 'error');
     }
 
-    renderCartItems(); // Vuelve a dibujar el carrito para mostrar los totales
+    renderCartItems(); 
 };
 
 
 const finishPurchase = () => {
     if (!isLoggedIn()) {
-        alert("Debes iniciar sesión para finalizar la compra.");
-        window.location.href = 'login.html';
+        showModal("Debes iniciar sesión para finalizar la compra.", 'warning');
+        setTimeout(() => { window.location.href = 'login.html'; }, 1500);
         return;
     }
     
     if (getCart().length === 0) {
-        alert("El carrito está vacío. Agrega productos antes de finalizar la compra.");
+        showModal("El carrito está vacío. Agrega productos antes de finalizar la compra.", 'warning');
         return;
     }
 
-    alert("¡Compra realizada con éxito! Recibirás la confirmación por correo.");
+    showModal("¡Compra realizada con éxito! Recibirás la confirmación por correo.", 'success');
     localStorage.removeItem('vivero_cart');
-    localStorage.removeItem('discount_applied'); // Limpiamos el descuento
-    window.location.href = 'index.html';
+    localStorage.removeItem('discount_applied');
+    setTimeout(() => { window.location.href = 'index.html'; }, 2000);
 };
 
 
-// ------------------------------------------------------------------
-// Lógica de Renderizado y Conexión de Botones
-// ------------------------------------------------------------------
-
+// ... (Resto de funciones renderizado y conexión - mantienen el mismo formato)
 const renderCartItems = () => {
     const cartContainer = document.getElementById('cart-container');
     if (!cartContainer) return;
@@ -151,7 +138,6 @@ const renderCartItems = () => {
         cartContainer.innerHTML = `<div class="alert alert-warning text-center">Por seguridad, debes <a href="login.html">iniciar sesión</a> para ver y gestionar tu carrito.</div>`;
         return;
     }
-    
     if (cart.length === 0) {
         cartContainer.innerHTML = `<div class="alert alert-info text-center">Tu carrito está vacío. ¡Explora nuestras <a href="productos.html">plantas</a>!</div>`;
         return;
@@ -263,7 +249,7 @@ const setupRemoveListeners = () => {
 const setupAddToCartListeners = () => {
     const cartButtons = document.querySelectorAll('.add-to-cart');
     
-    console.log(`[Carrito] Botones de añadir encontrados: ${cartButtons.length}`); 
+    // console.log(`[Carrito] Botones de añadir encontrados: ${cartButtons.length}`); 
     
     cartButtons.forEach(button => {
         button.addEventListener('click', (e) => {

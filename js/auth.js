@@ -1,6 +1,5 @@
 // ===============================================
-// Archivo: js/auth.js
-// Lógica de Autenticación (Login, Register, Logout)
+// Archivo: js/auth.js (FINAL con Modales)
 // ===============================================
 
 const getUsers = () => {
@@ -18,20 +17,27 @@ const handleRegister = (e) => {
     const password = passwordInput.value.trim();
 
     if (!name || !email || !password) {
-        alert('Error: Todos los campos son obligatorios.'); return;
+        showModal('Error: Todos los campos son obligatorios.', 'error'); 
+        return;
     }
     if (password.length < 6) {
-        alert('Error: La contraseña debe tener al menos 6 caracteres.'); return;
+        showModal('Error: La contraseña debe tener al menos 6 caracteres.', 'error'); 
+        return;
     }
     const users = getUsers();
     if (users.some(user => user.email === email)) {
-        alert('Error: Ya existe una cuenta registrada con este correo.'); return;
+        showModal('Error: Ya existe una cuenta registrada con este correo.', 'error'); 
+        return;
     }
 
     const newUser = { name, email, password };
     users.push(newUser);
     localStorage.setItem('vivero_users', JSON.stringify(users));
-    window.location.href = 'login.html';
+    
+    showModal('¡Registro exitoso! Ya puedes iniciar sesión.', 'success');
+    setTimeout(() => {
+        window.location.href = 'login.html';
+    }, 1500); 
 };
 
 const handleLogin = (e) => {
@@ -42,24 +48,30 @@ const handleLogin = (e) => {
     const password = passwordInput.value.trim();
 
     if (!email || !password) {
-        alert('Error: Por favor, ingrese email y contraseña.'); return;
+        showModal('Error: Por favor, ingrese email y contraseña.', 'error'); 
+        return;
     }
     const users = getUsers();
     const userFound = users.find(user => user.email === email);
 
     if (!userFound) {
-        alert('Error: El correo electrónico no está registrado.'); return;
+        showModal('Error: El correo electrónico no está registrado.', 'error'); 
+        return;
     }
     if (userFound.password !== password) {
-        alert('Error: Contraseña incorrecta.'); return;
+        showModal('Error: Contraseña incorrecta.', 'error'); 
+        return;
     }
 
     const userSession = { email: userFound.email, name: userFound.name };
     localStorage.setItem('usuarioLogueado', JSON.stringify(userSession));
-    window.location.href = 'index.html';
+    
+    showModal(`¡Bienvenido, ${userFound.name}! Sesión iniciada.`, 'success');
+    setTimeout(() => {
+        window.location.href = 'index.html';
+    }, 1500); 
 };
 
-/** Cierra la sesión del usuario. ES GLOBAL para el onclick. */
 const handleLogout = () => {
     localStorage.removeItem('usuarioLogueado');
     window.location.href = 'index.html';

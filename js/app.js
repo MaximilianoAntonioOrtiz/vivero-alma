@@ -1,34 +1,58 @@
 // ===============================================
-// Archivo: js/app.js (FINAL CON SLIDER)
+// Archivo: js/app.js (Control del Modal y Lógica General)
 // ===============================================
 
 /**
- * Lógica para el Hero Slider automático en index.html
+ * Función global para mostrar el modal de notificación.
+ * @param {string} message - El mensaje a mostrar.
+ * @param {string} type - Tipo de notificación ('success', 'error', 'warning').
  */
-const startSlider = () => {
-    const slides = document.querySelectorAll('.slide');
-    if (slides.length === 0) return;
+const showModal = (message, type = 'success') => {
+    const modalElement = document.getElementById('globalModal');
+    if (!modalElement) return;
 
-    let currentSlide = 0;
+    // Inicializar el objeto Modal de Bootstrap (si no existe)
+    const bootstrapModal = new bootstrap.Modal(modalElement);
+    
+    const titleElement = document.getElementById('globalModalLabel');
+    const bodyElement = modalElement.querySelector('.modal-body');
+    const headerElement = modalElement.querySelector('.modal-header');
+    
+    // --- Configurar Título e Icono ---
+    let iconClass = 'fa-check-circle'; // Default Success
+    let headerClass = 'bg-success';
 
-    const changeSlide = () => {
-        // 1. Eliminar la clase 'active' de la diapositiva actual
-        slides[currentSlide].classList.remove('active');
+    if (type === 'error') {
+        iconClass = 'fa-times-circle';
+        headerClass = 'bg-danger';
+    } else if (type === 'warning') {
+        iconClass = 'fa-exclamation-triangle';
+        headerClass = 'bg-warning text-dark';
+    }
 
-        // 2. Calcular el índice de la siguiente diapositiva (loop)
-        currentSlide = (currentSlide + 1) % slides.length;
+    headerElement.className = `modal-header text-white ${headerClass}`;
+    titleElement.innerHTML = `<i class="fas ${iconClass} me-2"></i> ${type.charAt(0).toUpperCase() + type.slice(1)}`; // Título capitalizado
 
-        // 3. Añadir la clase 'active' a la nueva diapositiva
-        slides[currentSlide].classList.add('active');
-    };
-
-    // Iniciar el temporizador para cambiar la diapositiva cada 5000 milisegundos (5 segundos)
-    setInterval(changeSlide, 5000);
+    // --- Configurar Cuerpo y Mostrar ---
+    bodyElement.innerHTML = `<p>${message}</p>`;
+    bootstrapModal.show();
 };
 
+// Conectar el listener al formulario de Contacto (mantener la funcionalidad)
 document.addEventListener('DOMContentLoaded', () => {
-    // Solo inicia el slider si estamos en la página de inicio y la estructura existe
-    if (document.getElementById('hero-slider')) {
-        startSlider();
+    const contactForm = document.getElementById('contact-form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const form = document.getElementById('contact-form');
+            
+            if (!form.checkValidity()) {
+                showModal('Por favor, completa todos los campos requeridos correctamente.', 'error');
+                return;
+            }
+
+            showModal('¡Mensaje enviado con éxito! Nos pondremos en contacto pronto.', 'success');
+            form.reset(); 
+        });
     }
 });
