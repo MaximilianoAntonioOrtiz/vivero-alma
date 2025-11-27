@@ -1,22 +1,18 @@
 // ===============================================
-// Archivo: js/app.js (Control del Modal y Lógica General)
-// FINAL CON TÍTULOS EN ESPAÑOL
+// Archivo: js/app.js (FINAL con Modales Y Slider)
 // ===============================================
 
 /**
  * Función global para mostrar el modal de notificación.
- * @param {string} message - El mensaje a mostrar.
- * @param {string} type - Tipo de notificación ('success', 'error', 'warning').
+ * Reemplaza a alert().
  */
 const showModal = (message, type = 'success') => {
     const modalElement = document.getElementById('globalModal');
     if (!modalElement || typeof bootstrap === 'undefined') {
-        // Fallback si Bootstrap no carga
         alert(message); 
         return;
     }
 
-    // --- Mapeo de Títulos a Español (NUEVA LÓGICA) ---
     const titles = {
         'success': 'Éxito',
         'error': 'Error',
@@ -24,15 +20,13 @@ const showModal = (message, type = 'success') => {
     };
     const titleText = titles[type] || 'Notificación';
     
-    // Inicializar el objeto Modal de Bootstrap
     const bootstrapModal = new bootstrap.Modal(modalElement);
     
     const titleElement = document.getElementById('globalModalLabel');
     const bodyElement = modalElement.querySelector('.modal-body');
     const headerElement = modalElement.querySelector('.modal-header');
     
-    // --- Configurar Título, Icono y Color ---
-    let iconClass = 'fa-check-circle'; // Default Success
+    let iconClass = 'fa-check-circle';
     let headerClass = 'bg-success';
 
     if (type === 'error') {
@@ -44,29 +38,71 @@ const showModal = (message, type = 'success') => {
     }
 
     headerElement.className = `modal-header text-white ${headerClass}`;
-    // Usamos el texto mapeado en español: titleText
     titleElement.innerHTML = `<i class="fas ${iconClass} me-2"></i> ${titleText}`; 
 
-    // --- Configurar Cuerpo y Mostrar ---
     bodyElement.innerHTML = `<p>${message}</p>`;
     bootstrapModal.show();
 };
 
-// Conectar el listener al formulario de Contacto (mantener la funcionalidad)
+
+// -----------------------------------------------------
+// Lógica para el Hero Slider (REINTEGRADA)
+// -----------------------------------------------------
+
+/**
+ * Lógica para el Hero Slider automático en index.html
+ */
+const startSlider = () => {
+    const slides = document.querySelectorAll('.slide');
+    // Solo iniciar si estamos en la página correcta y hay slides
+    if (document.getElementById('hero-slider') === null || slides.length === 0) return; 
+
+    let currentSlide = 0;
+
+    const changeSlide = () => {
+        // 1. Eliminar la clase 'active' de la diapositiva actual
+        slides[currentSlide].classList.remove('active');
+
+        // 2. Calcular el índice de la siguiente diapositiva (loop)
+        currentSlide = (currentSlide + 1) % slides.length;
+
+        // 3. Añadir la clase 'active' a la nueva diapositiva
+        slides[currentSlide].classList.add('active');
+    };
+
+    // Iniciar el temporizador para cambiar la diapositiva cada 5 segundos
+    setInterval(changeSlide, 5000);
+};
+
+
+// -----------------------------------------------------
+// Lógica de Contacto y Ejecución
+// -----------------------------------------------------
+
+/**
+ * Función que maneja el envío y la validación del formulario de contacto.
+ */
+const handleContactForm = (e) => {
+    e.preventDefault();
+    const form = document.getElementById('contact-form');
+    
+    if (!form.checkValidity()) {
+        showModal('Por favor, completa todos los campos requeridos correctamente.', 'error');
+        return;
+    }
+
+    showModal('¡Mensaje enviado con éxito! Nos pondremos en contacto pronto.', 'success');
+    form.reset(); 
+};
+
+// Conexión principal de los scripts al cargar el DOM
 document.addEventListener('DOMContentLoaded', () => {
+    // Iniciar el Slider en la página de inicio
+    startSlider(); 
+
+    // Conectar el formulario de Contacto
     const contactForm = document.getElementById('contact-form');
     if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const form = document.getElementById('contact-form');
-            
-            if (!form.checkValidity()) {
-                showModal('Por favor, completa todos los campos requeridos correctamente.', 'error');
-                return;
-            }
-
-            showModal('¡Mensaje enviado con éxito! Nos pondremos en contacto pronto.', 'success');
-            form.reset(); 
-        });
+        contactForm.addEventListener('submit', handleContactForm);
     }
 });
