@@ -1,6 +1,5 @@
 // ===============================================
-// Archivo: js/components.js
-// Componentes reutilizables (Footer con Redes Sociales)
+// Archivo: js/components.js (FINAL con "Sobre Nosotros")
 // ===============================================
 
 const getLoggedInUser = () => {
@@ -43,6 +42,9 @@ const createNavbar = () => {
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="contacto.html">Contacto</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="sobre-nosotros.html">Sobre Nosotros</a>
                         </li>
                     </ul>
                     <div class="d-flex">
